@@ -828,7 +828,7 @@ function addFeed(who,hole,s){
   }));
 }
 const pops=[];
-function addPop(x,y,text,gold){pops.push({x,y,text,gold,t:performance.now()});}
+function addPop(x,y,text,gold,screen){pops.push({x,y,text,gold,screen:!!screen,t:performance.now()});}
 function ballLie(){return terrainAt(ball.x,ball.y);}
 function nearBall(){return dist(me.x,me.y,ball.x,ball.y)<3.2;}
 function pinDist(){return dist(ball.x,ball.y,...H().pin);}
@@ -978,7 +978,7 @@ function finishHole(score,inCup){
   const h=H();me.st="done";me.cards[me.hole]=score;
   me.ev={h:me.hole,s:score,t:Date.now()};
   const nm=scoreName(score,h.par),good=score<h.par;
-  if(inCup){say(score===1?"홀인원! 오늘 밥은 당신이 사는 거예요.":`${nm}! ${score}타로 홀 아웃.`,good);addPop(h.pin[0],h.pin[1],nm,good);}
+  if(inCup){say(score===1?"홀인원! 오늘 밥은 당신이 사는 거예요.":`${nm}! ${score}타로 홀 아웃.`,good);addPop(h.pin[0],h.pin[1],score===1?"홀인원":nm,good,true);}
   try{sfx.crowd(score,h.par,false);}catch(e){}
   addFeed("나",me.hole,score);
   renderUI();pushPresence(true);save();
@@ -998,7 +998,7 @@ function finishHole(score,inCup){
     if(me.hole===9){const out=me.cards.slice(0,9).reduce((a,v)=>a+(v||0),0);say(`전반 끝! OUT ${out}타. 그늘집에 들러 쉬어 가요. 10번 홀 티는 바로 아래예요.`);camYawTarget=Math.atan2(SHADE.y-me.y,SHADE.x-me.x);}
     else say(`${me.hole+1}번 홀, 파 ${nh.par} ${nh.len}m. 다음 티로 걸어가요.`);
     renderUI();pushPresence(true);save();
-  },2200);
+  },4000);
 }
 function newRound(){
   me.cards=Array(18).fill(null);me.buff={fed:0,focus:0,coffee:0,tipsy:0,bill:0};me.hole=0;me.strokes=0;me.st="walk";rollWind();
@@ -2595,10 +2595,14 @@ function drawOverlay(t,dt){
   // pops
   const now=performance.now();
   for(let k=pops.length-1;k>=0;k--){
-    const p=pops[k],a=(now-p.t)/(p.gold?3600:2400);if(a>1){pops.splice(k,1);continue;}
-    const s=project(p.x,p.y,groundH(p.x,p.y)+2.6+a*2);if(!s)continue;
-    fx.globalAlpha=Math.min(1,(1-a)*2);fx.font=`700 ${p.gold?20:16}px "Gowun Batang",serif`;fx.textAlign="center";
-    const tx=clamp(s.x,70,W-70);fx.fillStyle="rgba(0,0,0,.6)";fx.fillText(p.text,tx+1,s.y+1);fx.fillStyle=p.gold?"#f0c062":"#efe8d4";fx.fillText(p.text,tx,s.y);fx.globalAlpha=1;
+    // score names stay up for a good few seconds and only fade out at the very end
+    const p=pops[k],a=(now-p.t)/(p.screen?5500:p.gold?6000:5000);if(a>1){pops.splice(k,1);continue;}
+    const s=p.screen?{x:W/2,y:Hh*.34-a*10}:project(p.x,p.y,groundH(p.x,p.y)+2.6+a*1.2);if(!s)continue;
+    fx.globalAlpha=Math.min(1,a*8,(1-a)*4);fx.font=`700 ${p.screen?30:p.gold?20:16}px "Gowun Batang",serif`;fx.textAlign="center";
+    const tx=clamp(s.x,70,W-70);
+    if(p.screen){const tw=fx.measureText(p.text).width+44,th=48;fx.fillStyle="rgba(15,22,15,.72)";fx.beginPath();fx.roundRect?fx.roundRect(tx-tw/2,s.y-th+12,tw,th,24):fx.rect(tx-tw/2,s.y-th+12,tw,th);fx.fill();
+      fx.strokeStyle=p.gold?"rgba(240,192,98,.8)":"rgba(239,232,212,.45)";fx.lineWidth=1.5;fx.stroke();}
+    fx.fillStyle="rgba(0,0,0,.6)";fx.fillText(p.text,tx+1,s.y+1);fx.fillStyle=p.gold?"#f0c062":"#efe8d4";fx.fillText(p.text,tx,s.y);fx.globalAlpha=1;
   }
   // falling leaves drift with the wind as the camera sees it
   const rw=Math.cos(Math.atan2(wind.y,wind.x)-camYaw-Math.PI/2)*Math.hypot(wind.x,wind.y);
