@@ -1,0 +1,5 @@
+Creative Commons Zero v1.0 Universal (CC0 1.0) Public Domain Dedication
+
+The original field recordings listed in CREDITS.md were dedicated to the public
+domain by their authors under CC0 1.0. Full legal text:
+https://creativecommons.org/publicdomain/zero/1.0/legalcode
