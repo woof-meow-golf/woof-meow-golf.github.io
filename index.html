@@ -2550,8 +2550,8 @@ function drawOverlay(t,dt){
   if(!quiet)HOLES.forEach((h,i)=>{
     const dCam=dist(cam.position.x,cam.position.z,...h.pin);
     if(i===me.hole||dCam<120){const p=project(h.pin[0],h.pin[1],groundH(...h.pin)+3.6);
-      // at the ball (or standing beside it) the pin label measures from the ball, same as the top-left panel; while walking it measures from you
-      const atBall=me.st==="aim"||me.st==="swing"||me.st==="down"||dist(me.x,me.y,ball.x,ball.y)<3,pdl=atBall?pinDist():dist(me.x,me.y,...h.pin);
+      // the pin label always measures from your ball, same as the top-left panel
+      const pdl=pinDist();
       if(p)pill(i===me.hole?`${i+1}번 핀 · ${pdl.toFixed(pdl<20?1:0)}m`:`${i+1}번 핀`,p.x,p.y,i===me.hole?"#f0c062":"#efe8d4",null,i===me.hole?4:1);}
     if(dist(cam.position.x,cam.position.z,...h.tee)<140&&(i!==me.hole||(me.strokes===0&&me.st==="walk"))){const p=project(h.tee[0],h.tee[1],groundH(...h.tee)+2.2);
       if(p)pill(`${i+1}번 홀 티 · 파${h.par} · ${h.len}m`,p.x,p.y,null,null,i===me.hole?2:1);}
